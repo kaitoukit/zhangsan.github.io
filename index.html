@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简陋五子棋</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        #game { margin: 20px auto; }
+        .cell { width: 30px; height: 30px; border: 1px solid #aaa; display: inline-block; box-sizing: border-box; }
+        .black { background-color: #000; border-radius: 50%; }
+        .white { background-color: #fff; border-radius: 50%; border: 1px solid #000; }
+        .row { height: 30px; }
+        #status { margin: 10px; font-size: 18px; }
+        button { padding: 5px 15px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>五子棋游戏</h1>
+    <div id="status">黑方先行</div>
+    <div id="game"></div>
+    <button onclick="resetGame()">重新开始</button>
+
+    <script>
+        const boardSize = 15;
+        let board = [];
+        let currentPlayer = 1; // 1为黑棋，2为白棋
+        let gameOver = false;
+        
+        function initBoard() {
+            const gameElement = document.getElementById('game');
+            gameElement.innerHTML = '';
+            board = Array(boardSize).fill().map(() => Array(boardSize).fill(0));
+            
+            for (let i = 0; i < boardSize; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                for (let j = 0; j < boardSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.addEventListener('click', () => makeMove(i, j));
+                    row.appendChild(cell);
+                }
+                gameElement.appendChild(row);
+            }
+        }
+        
+        function makeMove(row, col) {
+            if (gameOver || board[row][col] !== 0) return;
+            
+            board[row][col] = currentPlayer;
+            const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.add(currentPlayer === 1 ? 'black' : 'white');
+            
+            if (checkWin(row, col)) {
+                document.getElementById('status').textContent = `${currentPlayer === 1 ? '黑方' : '白方'}获胜！`;
+                gameOver = true;
+                return;
+            }
+            
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            document.getElementById('status').textContent = `${currentPlayer === 1 ? '黑方' : '白方'}回合`;
+        }
+        
+        function checkWin(row, col) {
+            const directions = [[1,0], [0,1], [1,1], [1,-1]];
+            const player = board[row][col];
+            
+            for (const [dx, dy] of directions) {
+                let count = 1;
+                
+                for (let i = 1; i <= 4; i++) {
+                    const newRow = row + dx * i;
+                    const newCol = col + dy * i;
+                    if (newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize && 
+                        board[newRow][newCol] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                for (let i = 1; i <= 4; i++) {
+                    const newRow = row - dx * i;
+                    const newCol = col - dy * i;
+                    if (newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize && 
+                        board[newRow][newCol] === player) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+        
+        function resetGame() {
+            currentPlayer = 1;
+            gameOver = false;
+            document.getElementById('status').textContent = '黑方先行';
+            initBoard();
+        }
+        
+        // 初始化游戏
+        initBoard();
+    </script>
+</body>
+</html>
